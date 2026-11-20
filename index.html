@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10152b">
+<title>My YouTube Gaming — Brain Puzzle</title>
+<style>
+  :root { color-scheme: dark; --bg:#10152b; --panel:#1b2342; --panel2:#242e54; --ink:#f5f7ff; --muted:#aeb9dc; --accent:#7c9cff; --good:#55e0ad; --bad:#ff7188; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; padding: max(16px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom)); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--ink); background:radial-gradient(circle at 50% -10%,#293b70 0,#10152b 55%); display:flex; justify-content:center; }
+  button { font:inherit; -webkit-tap-highlight-color:transparent; }
+  .app { width:min(100%,560px); }
+  header { text-align:center; padding:12px 4px 18px; }
+  .eyebrow { color:#9eb4ff; text-transform:uppercase; letter-spacing:.16em; font-size:.72rem; font-weight:800; }
+  h1 { margin:5px 0 4px; font-size:clamp(1.8rem,7vw,2.6rem); line-height:1.05; }
+  header p { margin:8px 0 0; color:var(--muted); font-size:.94rem; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:13px; }
+  .stat { background:#1b2342dd; border:1px solid #ffffff12; border-radius:15px; padding:10px 6px; text-align:center; }
+  .stat span { display:block; color:var(--muted); font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; }
+  .stat strong { display:block; margin-top:3px; font-size:1.35rem; font-variant-numeric:tabular-nums; }
+  .panel { background:linear-gradient(160deg,#202a4d,#171e39); border:1px solid #ffffff16; border-radius:22px; padding:16px; box-shadow:0 16px 40px #0003; }
+  .status { min-height:58px; text-align:center; display:flex; flex-direction:column; justify-content:center; gap:3px; margin-bottom:12px; }
+  .status strong { font-size:1.05rem; }
+  .status small { color:var(--muted); font-size:.85rem; }
+  .grid { display:grid; grid-template-columns:repeat(var(--cols,3),1fr); gap:8px; width:min(100%,420px); margin:0 auto; touch-action:manipulation; }
+  .tile { aspect-ratio:1; border:1px solid #ffffff20; border-radius:13px; background:linear-gradient(145deg,#35436f,#263153); box-shadow:inset 0 1px #ffffff12,0 4px 0 #11182d; cursor:pointer; transition:transform .1s,background .12s,box-shadow .12s; }
+  .tile:active { transform:scale(.96); }
+  .tile:focus-visible,button:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+  .tile.lit { background:linear-gradient(145deg,#a9c0ff,#6488ff); box-shadow:0 0 22px #7c9cffaa,inset 0 1px #fff; border-color:#dbe5ff; }
+  .tile.correct { background:linear-gradient(145deg,#8df2ce,#31b98c); box-shadow:0 0 18px #55e0ad88; }
+  .tile.wrong { background:linear-gradient(145deg,#ff9bab,#e84f70); }
+  .tile:disabled { cursor:default; }
+  .actions { display:flex; gap:9px; margin-top:16px; }
+  .btn { flex:1; border:0; border-radius:13px; padding:13px 12px; font-weight:800; cursor:pointer; }
+  .primary { color:#10152b; background:linear-gradient(135deg,#a9bdff,#7193ff); }
+  .secondary { color:var(--ink); background:#303c65; border:1px solid #ffffff18; }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
+  .hint { text-align:center; color:var(--muted); font-size:.78rem; margin:12px 0 0; }
+  .below { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+  .mini { background:#1b2342cc; border:1px solid #ffffff12; border-radius:16px; padding:13px; }
+  .mini h2 { font-size:.9rem; margin:0 0 8px; }
+  .mini p { color:var(--muted); font-size:.78rem; line-height:1.45; margin:0; }
+  ol { margin:0; padding-left:22px; color:var(--muted); font-size:.8rem; }
+  li { padding:2px 0; }
+  .empty { color:var(--muted); font-size:.78rem; }
+  .footer { color:#8592b9; font-size:.72rem; text-align:center; margin:15px 0 0; }
+  .sound-toggle { position:absolute; right: max(14px,calc((100vw - 560px)/2)); top:15px; border:1px solid #ffffff22; background:#1b2342; color:var(--ink); border-radius:999px; padding:8px 11px; font-size:.78rem; }
+  @media(max-width:390px) { .panel{padding:12px}.grid{gap:6px}.tile{border-radius:10px}.below{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<button class="sound-toggle" id="soundBtn" type="button" aria-pressed="true">🔊 Sound on</button>
+<main class="app">
+  <header>
+    <div class="eyebrow">Train your brain • Beat your best</div>
+    <h1>🧠 My YouTube Gaming</h1>
+    <p>Watch the glowing pattern, then tap the tiles in the same order.</p>
+  </header>
+
+  <section class="stats" aria-label="Game statistics">
+    <div class="stat"><span>Score</span><strong id="score">0</strong></div>
+    <div class="stat"><span>Level</span><strong id="level">1</strong></div>
+    <div class="stat"><span>Best</span><strong id="best">0</strong></div>
+  </section>
+
+  <section class="panel">
+    <div class="status" aria-live="polite">
+      <strong id="message">Ready for a brain workout?</strong>
+      <small id="subMessage">Press Start to begin Level 1.</small>
+    </div>
+    <div class="grid" id="grid" style="--cols:3" aria-label="Puzzle tiles"></div>
+    <div class="actions">
+      <button class="btn primary" id="startBtn" type="button">▶ Start Game</button>
+      <button class="btn secondary" id="restartBtn" type="button">↻ Restart</button>
+    </div>
+    <p class="hint" id="hint">Memorize the glowing tiles. Then tap them in order!</p>
+  </section>
+
+  <section class="below">
+    <div class="mini">
+      <h2>🏆 Local leaderboard</h2>
+      <div id="leaderboard" class="empty">No scores yet. Set the first record!</div>
+    </div>
+    <div class="mini">
+      <h2>📈 How to level up</h2>
+      <p>Complete the pattern to earn points. Every level adds another tile to remember. The board grows as you progress!</p>
+    </div>
+  </section>
+  <p class="footer">Your best score and leaderboard are saved on this device in this browser.</p>
+</main>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const grid = $("grid"), scoreEl = $("score"), levelEl = $("level"), bestEl = $("best");
+  const messageEl = $("message"), subEl = $("subMessage"), startBtn = $("startBtn");
+  const restartBtn = $("restartBtn"), hintEl = $("hint"), soundBtn = $("soundBtn");
+  const STORE = "myYouTubeGamingBrainPuzzle_v1";
+  let score = 0, level = 1, best = 0, sequence = [], inputIndex = 0;
+  let accepting = false, running = false, soundOn = true, audioCtx = null, roundToken = 0;
+  let tiles = [];
+
+  function loadData() {
+    try {
+      const data = JSON.parse(localStorage.getItem(STORE) || "{}");
+      best = Number(data.best) || 0;
+      renderLeaderboard(Array.isArray(data.scores) ? data.scores : []);
+    } catch (_) { best = 0; renderLeaderboard([]); }
+    bestEl.textContent = best;
+  }
+  function saveScore() {
+    let data = {};
+    try { data = JSON.parse(localStorage.getItem(STORE) || "{}"); } catch (_) {}
+    const scores = Array.isArray(data.scores) ? data.scores : [];
+    scores.push({ score, level, date: new Date().toLocaleDateString() });
+    scores.sort((a,b) => b.score - a.score);
+    data.best = Math.max(best, score);
+    data.scores = scores.slice(0,5);
+    best = data.best;
+    try { localStorage.setItem(STORE, JSON.stringify(data)); } catch (_) {}
+    bestEl.textContent = best;
+    renderLeaderboard(data.scores);
+  }
+  function renderLeaderboard(scores) {
+    const box = $("leaderboard");
+    if (!scores.length) { box.className = "empty"; box.textContent = "No scores yet. Set the first record!"; return; }
+    box.className = "";
+    const list = document.createElement("ol");
+    scores.slice(0,5).forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = `${item.score} pts · Level ${item.level} · ${item.date || ""}`;
+      list.appendChild(li);
+    });
+    box.replaceChildren(list);
+  }
+  function beep(freq=440, duration=.11, type="sine") {
+    if (!soundOn) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.type = type; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.12, audioCtx.currentTime + .012);
+      gain.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime + duration);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + duration + .02);
+    } catch (_) {}
+  }
+  function say(title, sub) { messageEl.textContent = title; subEl.textContent = sub; }
+  function boardSize() { return Math.min(6, 3 + Math.floor((level - 1) / 2)); }
+  function sequenceLength() { return Math.min(3 + level, 12); }
+  function buildBoard() {
+    const cols = boardSize(), count = cols * cols;
+    grid.style.setProperty("--cols", cols);
+    grid.replaceChildren(); tiles = [];
+    for (let i=0; i<count; i++) {
+      const tile = document.createElement("button");
+      tile.type = "button"; tile.className = "tile";
+      tile.setAttribute("aria-label", `Tile ${i+1}`);
+      tile.disabled = true;
+      tile.addEventListener("click", () => tapTile(i));
+      grid.appendChild(tile); tiles.push(tile);
+    }
+  }
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  async function flash(index, token, duration=430) {
+    if (token !== roundToken) return;
+    const tile = tiles[index]; if (!tile) return;
+    tile.classList.add("lit"); beep(350 + (index % 12) * 38, .16);
+    await wait(duration);
+    tile.classList.remove("lit");
+  }
+  async function showSequence() {
+    const token = roundToken;
+    accepting = false; tiles.forEach(t => t.disabled = true);
+    say("👀 Watch carefully!", `Remember ${sequence.length} glowing tiles.`);
+    hintEl.textContent = "Watch the pattern — don't tap yet.";
+    await wait(550);
+    for (const index of sequence) {
+      if (token !== roundToken) return;
+      await flash(index, token, Math.max(260, 480 - level * 12));
+      await wait(Math.max(120, 220 - level * 5));
+    }
+    if (token !== roundToken) return;
+    accepting = true; tiles.forEach(t => t.disabled = false);
+    inputIndex = 0;
+    say("👉 Your turn!", "Tap the tiles in exactly the same order.");
+    hintEl.textContent = `Progress: 0 / ${sequence.length}`;
+  }
+  function newRound() {
+    buildBoard();
+    const count = tiles.length;
+    sequence = [];
+    const length = sequenceLength();
+    for (let i=0; i<length; i++) {
+      let next = Math.floor(Math.random() * count);
+      if (count > 1 && next === sequence[i-1]) next = (next + 1 + Math.floor(Math.random()*(count-1))) % count;
+      sequence.push(next);
+    }
+    showSequence();
+  }
+  function startGame() {
+    roundToken++; score = 0; level = 1; running = true; inputIndex = 0;
+    updateStats(); startBtn.disabled = true; startBtn.textContent = "Game in progress";
+    newRound();
+  }
+  function updateStats() {
+    scoreEl.textContent = score; levelEl.textContent = level; bestEl.textContent = best;
+  }
+  function tapTile(index) {
+    if (!accepting || !running) return;
+    const tile = tiles[index];
+    if (index !== sequence[inputIndex]) {
+      accepting = false; tile.classList.add("wrong"); beep(145,.28,"sawtooth");
+      say("❌ Not quite!", `You reached ${inputIndex} of ${sequence.length}. Final score: ${score}.`);
+      endGame(); return;
+    }
+    tile.classList.add("correct"); beep(620 + inputIndex*25,.09);
+    setTimeout(() => tile.classList.remove("correct"), 190);
+    inputIndex++;
+    hintEl.textContent = `Progress: ${inputIndex} / ${sequence.length}`;
+    if (inputIndex === sequence.length) {
+      accepting = false;
+      const gained = 10 * level + sequence.length * 2;
+      score += gained; level++;
+      updateStats(); beep(880,.18); setTimeout(() => beep(1120,.2),130);
+      say("🎉 Pattern solved!", `+${gained} points! Get ready for Level ${level}.`);
+      hintEl.textContent = "Great memory! Next level loading…";
+      const token = roundToken;
+      setTimeout(() => { if (running && token === roundToken) newRound(); }, 950);
+    }
+  }
+  function endGame() {
+    running = false; accepting = false; roundToken++;
+    tiles.forEach(t => t.disabled = true);
+    if (score > best) { best = score; }
+    saveScore(); updateStats();
+    startBtn.disabled = false; startBtn.textContent = "▶ Play Again";
+    hintEl.textContent = "Press Play Again to try for a new high score.";
+  }
+  function restartGame() {
+    roundToken++; running = false; accepting = false;
+    tiles.forEach(t => t.disabled = true);
+    score = 0; level = 1; updateStats();
+    say("Ready for a brain workout?", "Press Start to begin Level 1.");
+    hintEl.textContent = "Memorize the glowing tiles. Then tap them in order!";
+    startBtn.disabled = false; startBtn.textContent = "▶ Start Game";
+    buildBoard();
+  }
+  startBtn.addEventListener("click", startGame);
+  restartBtn.addEventListener("click", restartGame);
+  soundBtn.addEventListener("click", () => {
+    soundOn = !soundOn;
+    soundBtn.textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+    soundBtn.setAttribute("aria-pressed", String(soundOn));
+    if (soundOn) beep(660,.1);
+  });
+  loadData(); buildBoard(); updateStats();
+})();
+</script>
+</body>
+</html>
